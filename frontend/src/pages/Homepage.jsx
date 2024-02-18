@@ -1,11 +1,38 @@
-import { Grid, Typography,TextareaAutosize } from "@mui/material";
-import { useState,useEffect,useContext } from "react";
+import { Grid, Typography,TextareaAutosize, FormControl } from "@mui/material";
+import { useState,useEffect,useContext, useRef} from "react";
 import CustomTextField from "../components/CustomTextField/CustomTextField";
 import ColorButton from "../components/ColorButtom/ColorButton";
 
 export default function Homepage() {
 const [infoImage, setInfoImage] = useState('');
+const [image, setImage] = useState('');
+const fileInputRef = useRef(null); // Crear una referencia al input de tipo file
+// con el useRef se puede jalar el valor de un input creado en otra clase y colocarlo adentro de otra variable desada
 
+const handleCargarClick = () => {
+    const file = fileInputRef.current.files[0]; // Obtener el archivo seleccionado
+
+    if (file) {
+      // Leer el contenido del archivo seleccionado
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImage(event.target.result)
+        console.log('Contenido del archivo:', event.target.result); //formato 64bit
+      };
+      reader.readAsDataURL(file);
+    } else {
+      console.log('No se ha seleccionado ningún archivo.');
+    }
+  };
+
+  const handleProcesarClick = () => {
+    const file = fileInputRef.current.files[0]; // Obtener el archivo seleccionado
+    if (file) {
+      console.log('Nombre del archivo:', file.name);
+    } else {
+      console.log('No se ha seleccionado ningún archivo.');
+    }
+  };
   return (
     <Grid container sx={{ display: "flex", fontFamily: "Arial" }}>
       <Grid container justifyContent={"center"}>
@@ -29,19 +56,21 @@ const [infoImage, setInfoImage] = useState('');
               style: { color: "#B2BAC2" }, // Cambia el color del texto de ayuda a blanco
             }}
             name="photo"
+            inputRef={fileInputRef}
           />
         </Grid>
         <Grid item xs={2}>
-          <ColorButton text={"Cargar"} mt={2} />
+          <ColorButton text={"Cargar"} mt={2} functionality={handleCargarClick}/>
         </Grid>
         <Grid item xs={2}>
-          <ColorButton text={"Procesar"} mt={2}/>
+          <ColorButton text={"Procesar"} mt={2} functionality={handleProcesarClick} />
         </Grid>
       </Grid>
       <Grid container>
         <Grid item xs={1} />
         <Grid item xs={4}>
           {/*APARTADO PARA IMAGEN*/}
+          <img src={image} alt="Imagen" style={{ maxWidth: '100%', maxHeight: '100%' }} />
         </Grid>
         <Grid item xs={2} />
         <Grid item xs={4}>
