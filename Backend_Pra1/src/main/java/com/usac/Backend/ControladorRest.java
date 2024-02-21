@@ -4,10 +4,10 @@
  */
 package com.usac.Backend;
 //PARA LAS CREDENCIALES DE GOOGLE CLOUD VISION
+
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.vision.v1.ImageAnnotatorSettings;
 import com.google.cloud.vision.v1.ImageAnnotatorClient;
-
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -20,8 +20,12 @@ import com.google.cloud.vision.v1.EntityAnnotation;
 import com.google.cloud.vision.v1.Image;
 import com.google.cloud.vision.v1.ImageAnnotatorClient;
 import com.google.protobuf.ByteString;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +45,40 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 public class ControladorRest {
 
+    private ImageAnnotatorClient visionClient;
+
+    public ControladorRest() throws IOException {
+  // Obtener la ruta del archivo de credenciales
+        String credentialsPath = "/proyectosia-415015-c0f4bd1db356.json";
+        InputStream credentialsStream = getClass().getResourceAsStream(credentialsPath);
+
+        // Leer el contenido del archivo de credenciales
+        StringBuilder credentialsContent = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(credentialsStream))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                credentialsContent.append(line).append("\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Contenido del archivo de credenciales:");
+        System.out.println(credentialsContent.toString());
+
+        // Crear las credenciales a partir del archivo
+        credentialsStream = getClass().getResourceAsStream(credentialsPath); // Reabrir el flujo de entrada
+        GoogleCredentials credentials = GoogleCredentials.fromStream(credentialsStream);
+
+        // Crear la configuración del cliente de Vision
+        ImageAnnotatorSettings settings = ImageAnnotatorSettings.newBuilder()
+                .setCredentialsProvider(() -> credentials)
+                .build();
+
+        // Crear el cliente de Vision
+    visionClient = ImageAnnotatorClient.create(settings);
+    }
+
     @GetMapping("/")
     public String Comienzo() {
         /*Para poder hacer uso de los logs se debe de configurar application.propierties
@@ -54,7 +92,7 @@ public class ControladorRest {
     public class ImageAnalysisController {
 
         @PostMapping("/analisisImage")
-                                        //imageFile es el nombre como se debe de enviar la imagen en el form-data
+        //imageFile es el nombre como se debe de enviar la imagen en el form-data
         public List<String> analizarImagen(MultipartFile imageFile) throws IOException {
             List<String> results = new ArrayList<>();
             if (imageFile == null) {
