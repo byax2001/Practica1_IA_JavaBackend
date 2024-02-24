@@ -47,12 +47,10 @@ public class ControladorRest {
             results.add("Se envió un archivo nulo");
             return results;
         }
-
         byte[] imageB = imageFile.getBytes();
-        String base64Image = Base64.getEncoder().encodeToString(imageB);
+        String imageB64 = Base64.getEncoder().encodeToString(imageB);
         String keyV = "AIzaSyAz3G7fw2ZYe9rTBtPusiEZshRrP4P02JU"; // Agrega tu clave API aquí
         String url = "https://vision.googleapis.com/v1/images:annotate?key=" + keyV;
-
         /*
         * LABEL_DETECTION (detección de etiquetas) es una función de la API de Google Vision que identifica objetos, lugares, actividades, productos y otros elementos significativos en una imagen. Básicamente, proporciona una lista de etiquetas que describen el contenido de la imagen.
             Por ejemplo, si tienes una imagen de una playa, el LABEL_DETECTION podría devolver etiquetas como "playa", "mar", "arena", "cielo", "personas", etc.
@@ -65,30 +63,19 @@ public class ControladorRest {
         * SAFE_SEARCH_DETECTION: Para detectar contenido inapropiado en la imagen.
         */
         String jsonBody = "{"
-                + "\"requests\":["
-                + "{"
-                + "\"image\":{"
-                + "\"content\":\"" + base64Image + "\""
-                + "},"
+                + "\"requests\":[{"
+                + "\"image\":{\"content\":\"" + imageB64 + "\"" + "},"
                 + "\"features\":["
-                + "{"
-                + "\"type\":\"FACE_DETECTION\""
-                + "},"
-                + "{"
-                + "\"type\":\"SAFE_SEARCH_DETECTION\""
-                + "}"
-                + "]"
-                + "}"
-                + "]" + "}";
+                + "{\"type\":\"FACE_DETECTION\"},"
+                + "{\"type\":\"SAFE_SEARCH_DETECTION\"}"
+                + "]}]"
+                + "}";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<String> requestEntity = new HttpEntity<>(jsonBody, headers);
-
+        HttpHeaders headersp = new HttpHeaders();
+        headersp.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> rEntity = new HttpEntity<>(jsonBody, headersp);
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, requestEntity, String.class);
-
+        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, rEntity, String.class);
         HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
         if (statusCode == HttpStatus.OK) {
             String responseBody = responseEntity.getBody();

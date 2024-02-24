@@ -1,12 +1,12 @@
 import { Grid, Typography,TextareaAutosize, FormControl } from "@mui/material";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Alert } from '@mui/material';
 import { useState,useEffect,useContext, useRef} from "react";
 import CustomTextField from "../components/CustomTextField/CustomTextField";
 import ColorButton from "../components/ColorButtom/ColorButton";
 import axios from "axios";
 
 
-const TableComponent = ({Data}) => {
+const TableComponent = ({Data, Percentage}) => {
   return (
     <TableContainer sx={{marginTop:5}} component={Paper}>
       <Table sx={{}}>
@@ -14,6 +14,7 @@ const TableComponent = ({Data}) => {
           <TableRow sx={{backgroundColor:"#434343"}}>
             <TableCell sx={{color:"white"}}>Category</TableCell>
             <TableCell sx={{color:"white"}}>Value</TableCell>
+            <TableCell sx={{color:"white"}}>Percentage</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -21,6 +22,7 @@ const TableComponent = ({Data}) => {
             <TableRow key={index}>
               <TableCell>{category}</TableCell>
               <TableCell>{Data[category]}</TableCell>
+              <TableCell>{Percentage[category]}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -31,13 +33,15 @@ const TableComponent = ({Data}) => {
 };
 
 export default function Homepage() {
-  const Data = {
-    adult: "VERY_UNLIKELY",
-    medical: "VERY_UNLIKELY",
-    racy: "UNLIKELY",
-    spoof: "UNLIKELY",
-    violence: "VERY_UNLIKELY"
-  };
+  const [showAlert,setShowAlert]=useState(false)  // si no es apta para la institucion
+  const [showAlertV,setShowAlertV]=useState(false)  // si es valida
+  const [percentage,setPercentage] = useState({
+    adult: 0,
+    medical: 0,
+    racy: 0,
+    spoof: 0,
+    violence: 0
+  });
 const [infoImage, setInfoImage] = useState({
   adult: "",
   medical: "",
@@ -45,12 +49,28 @@ const [infoImage, setInfoImage] = useState({
   spoof: "",
   violence: ""
 });
+
+const valueTicket = {
+  VERY_UNLIKELY: 20,
+  UNLIKELY: 40,
+  POSSIBLE: 60,
+  LIKELY: 80,
+  VERY_LIKELY: 100
+};
+
 const [nCaras, setNCaras] = useState("0")
 const [image, setImage] = useState('https://science.nasa.gov/wp-content/uploads/2023/06/spiral-galaxy-jpg.webp');
 const fileInputRef = useRef(null); // Crear una referencia al input de tipo file
 // con el useRef se puede jalar el valor de un input creado en otra clase y colocarlo adentro de otra variable desada
 
 const handleCargarClick = () => {
+    setPercentage({
+      adult: 0,
+      medical: 0,
+      racy: 0,
+      spoof: 0,
+      violence: 0
+    })
     const file = fileInputRef.current.files[0]; // Obtener el archivo seleccionado
     if (file) {
       // Leer el contenido del archivo seleccionado
@@ -88,9 +108,16 @@ const handleCargarClick = () => {
             setNCaras("No se detectaron Rostros")
           }
           setInfoImage(datos["safeSearchAnnotation"])
-          //console.log(jsonClean)
-          //setInfoImage(trueJson)
-          console.log(datos)
+          
+          const percentageAux = {};
+          Object.keys(datos["safeSearchAnnotation"]).forEach(key => {
+            const stringValue = datos["safeSearchAnnotation"][key];
+            console.log(stringValue)
+            percentageAux[key] = valueTicket[stringValue];
+          });
+          console.log(percentageAux)
+          setPercentage(percentageAux)
+          //console.log(datos)
         })
         .catch(error => {
           console.error('Error al enviar el archivo:', error);
@@ -99,6 +126,35 @@ const handleCargarClick = () => {
       console.log('No se ha seleccionado ningún archivo.');
     }
   };
+
+  useEffect(() => {
+    // Check if 'violence' percentage is greater than or equal to 60
+    setShowAlertV(false)
+    setShowAlert(false)
+    if (parseInt(percentage.violence) >= 40 && parseInt(percentage.racy) >= 40 && parseInt(percentage.adult) > 20) {
+      // If true, apply blur to the image
+      document.getElementById('ImagenAnalizada').style.filter = 'blur(5px)';
+      setShowAlert(true)
+    }else if (parseInt(percentage.violence) >= 60) {
+      // If true, apply blur to the image
+      document.getElementById('ImagenAnalizada').style.filter = 'blur(5px)';
+    } else if (parseInt(percentage.racy) > 40) {
+      // If true, apply blur to the image
+      document.getElementById('ImagenAnalizada').style.filter = 'blur(5px)';
+    } else if (parseInt(percentage.adult) >= 40) {
+      // If true, apply blur to the image
+      document.getElementById('ImagenAnalizada').style.filter = 'blur(5px)';
+    } else  if (parseInt(percentage.violence) >0){ // si no es ninguna de las condiciones pero tan siquiera tiene valores (por que si 
+                                                  //  se escogio la opcion cargar todo sera 0 pues no se evaluara nada solo se pondra
+                                                  // la imagen)
+      document.getElementById('ImagenAnalizada').style.filter = 'none';
+      setShowAlertV(true) // si la imagen es valida, si no en cualquier cambio desaparecera esta opcion
+    }
+    else {
+      // Otherwise, remove blur
+      document.getElementById('ImagenAnalizada').style.filter = 'none';
+    }
+  }, [percentage]);
   return (
     <Grid container sx={{ display: "flex", fontFamily: "Arial" }}>
       <Grid container justifyContent={"center"}>
@@ -136,7 +192,9 @@ const handleCargarClick = () => {
         <Grid item xs={1} />
         <Grid item xs={4}>
           {/*APARTADO PARA IMAGEN*/}
-          <img src={image} alt="Imagen" style={{ maxWidth: '100%', maxHeight: '100%' }} />
+          <img  id="ImagenAnalizada" src={image} alt="Imagen" style={{ maxWidth: '100%', maxHeight: '100%' }} />
+          {showAlert && <Alert severity="error" sx={{ marginTop: 2 }}>Imagen no apta para la institución</Alert>}
+          {showAlertV && <Alert severity="success" sx={{ marginTop: 2 }}>Imagen Valida</Alert>}
         </Grid>
         <Grid item xs={2} />
         <Grid item xs={4}>
@@ -162,7 +220,7 @@ const handleCargarClick = () => {
             />
           </Grid>
           
-        <TableComponent Data={infoImage}/>
+        <TableComponent Data={infoImage} Percentage={percentage}/>
         </Grid>
         <Grid item xs={1} />
       </Grid>
