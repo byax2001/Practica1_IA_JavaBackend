@@ -51,13 +51,17 @@ const [infoImage, setInfoImage] = useState({
 });
 
 const valueTicket = {
-  VERY_UNLIKELY: 20,
-  UNLIKELY: 40,
-  POSSIBLE: 60,
-  LIKELY: 80,
-  VERY_LIKELY: 100
+  VERY_UNLIKELY: 0,
+  UNLIKELY: 20,
+  POSSIBLE: 35,
+  LIKELY: 60,
+  VERY_LIKELY: 80
 };
-
+/*VeryUnlikely = 0
+Unlikely = 20
+Possible = 35
+Likely = 60
+VeryLikely = 80 */
 const [nCaras, setNCaras] = useState("0")
 const [image, setImage] = useState('https://science.nasa.gov/wp-content/uploads/2023/06/spiral-galaxy-jpg.webp');
 const fileInputRef = useRef(null); // Crear una referencia al input de tipo file
@@ -131,29 +135,28 @@ const handleCargarClick = () => {
     // Check if 'violence' percentage is greater than or equal to 60
     setShowAlertV(false)
     setShowAlert(false)
-    if (parseInt(percentage.violence) >= 40 && parseInt(percentage.racy) >= 40 && parseInt(percentage.adult) > 20) {
+    if (parseInt(percentage.violence) + parseInt(percentage.racy) + parseInt(percentage.adult) > 45) {
       // If true, apply blur to the image
       document.getElementById('ImagenAnalizada').style.filter = 'blur(5px)';
       setShowAlert(true)
     }else if (parseInt(percentage.violence) >= 60) {
       // If true, apply blur to the image
       document.getElementById('ImagenAnalizada').style.filter = 'blur(5px)';
-    } else if (parseInt(percentage.racy) > 40) {
+    } else if (parseInt(percentage.racy) >= 50) {
       // If true, apply blur to the image
       document.getElementById('ImagenAnalizada').style.filter = 'blur(5px)';
     } else if (parseInt(percentage.adult) >= 40) {
       // If true, apply blur to the image
       document.getElementById('ImagenAnalizada').style.filter = 'blur(5px)';
-    } else  if (parseInt(percentage.violence) >0){ // si no es ninguna de las condiciones pero tan siquiera tiene valores (por que si 
-                                                  //  se escogio la opcion cargar todo sera 0 pues no se evaluara nada solo se pondra
-                                                  // la imagen)
+    } else if (Object.values(percentage).every(value => value === 0)) {
+      // Todos los valores, si todos son iguales a 0 entonces se cargo una imagen de forma normal sin analizarla
+      // Otherwise, remove blur
+      document.getElementById('ImagenAnalizada').style.filter = 'none';
+    } else {
       document.getElementById('ImagenAnalizada').style.filter = 'none';
       setShowAlertV(true) // si la imagen es valida, si no en cualquier cambio desaparecera esta opcion
     }
-    else {
-      // Otherwise, remove blur
-      document.getElementById('ImagenAnalizada').style.filter = 'none';
-    }
+    
   }, [percentage]);
   return (
     <Grid container sx={{ display: "flex", fontFamily: "Arial" }}>

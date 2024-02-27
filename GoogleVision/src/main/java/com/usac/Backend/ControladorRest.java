@@ -71,12 +71,12 @@ public class ControladorRest {
                 + "]}]"
                 + "}";
 
-        HttpHeaders headersp = new HttpHeaders();
-        headersp.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> rEntity = new HttpEntity<>(jsonBody, headersp);
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, rEntity, String.class);
-        HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
+        HttpHeaders headersp = new HttpHeaders(); //creo los headers
+        headersp.setContentType(MediaType.APPLICATION_JSON); // establezco el tipo de archivo a mandar
+        HttpEntity<String> rEntity = new HttpEntity<>(jsonBody, headersp); // creo la entidad http
+        RestTemplate restTemplate = new RestTemplate(); // hago el template
+        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, rEntity, String.class); // hago el response
+        HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode(); // hago esto para verificar el stattus de la peticion
         if (statusCode == HttpStatus.OK) {
             String responseBody = responseEntity.getBody();
             System.out.println("Respuesta del servidor: " + responseBody);
